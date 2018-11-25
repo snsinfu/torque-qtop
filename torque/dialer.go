@@ -147,3 +147,12 @@ func authorize(conn *net.TCPConn, authAddr string) error {
 
 	return nil
 }
+
+// Dial connects to the active PBS server on the system using DefaultDialer.
+func Dial() (*Conn, error) {
+	address, err := DefaultDialer.GetActiveServer()
+	if err != nil {
+		return nil, err
+	}
+	return DefaultDialer.Dial(address)
+}
