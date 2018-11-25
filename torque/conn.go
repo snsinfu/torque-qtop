@@ -47,7 +47,7 @@ func (c *Conn) Flush() error {
 	return c.w.Flush()
 }
 
-// Close closes the connection.
+// Close closes the connection without flushing any buffered data.
 func (c *Conn) Close() error {
 	return c.conn.Close()
 }
