@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 
+	"github.com/snsinfu/torque-qtop/dis"
 	"github.com/snsinfu/torque-qtop/pipeenc"
 )
 
@@ -76,7 +77,7 @@ func (d *Dialer) GetActiveServer() (string, error) {
 }
 
 // Dial connects to a PBS server.
-func (d *Dialer) Dial(address string) (*Conn, error) {
+func (d *Dialer) Dial(address string) (Conn, error) {
 	addr, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
 		return nil, err
@@ -93,7 +94,7 @@ func (d *Dialer) Dial(address string) (*Conn, error) {
 	}
 
 	me, err := user.Current()
-	c := &Conn{
+	c := &pbsConn{
 		conn: conn,
 		r:    bufio.NewReader(conn),
 		w:    bufio.NewWriter(conn),
@@ -156,8 +157,46 @@ func authorize(conn *net.TCPConn, authAddr string) error {
 	return nil
 }
 
+// pbsConn is a real connection to a PBS server. It implements Conn interface.
+type pbsConn struct {
+	conn *net.TCPConn
+	r    *bufio.Reader
+	w    *bufio.Writer
+	user  string
+}
+
+func (c *pbsConn) User() string {
+	return c.user
+}
+
+func (c *pbsConn) ReadInt() (int64, error) {
+	return dis.ReadInt(c.r)
+}
+
+func (c *pbsConn) ReadString() (string, error) {
+	return dis.ReadString(c.r)
+}
+
+func (c *pbsConn) WriteInt(n int64) error {
+	_, err := c.w.WriteString(dis.EncodeInt(n))
+	return err
+}
+
+func (c *pbsConn) WriteString(s string) error {
+	_, err := c.w.WriteString(dis.EncodeString(s))
+	return err
+}
+
+func (c *pbsConn) Flush() error {
+	return c.w.Flush()
+}
+
+func (c *pbsConn) Close() error {
+	return c.conn.Close()
+}
+
 // Dial connects to the active PBS server on the system using DefaultDialer.
-func Dial() (*Conn, error) {
+func Dial() (Conn, error) {
 	address, err := DefaultDialer.GetActiveServer()
 	if err != nil {
 		return nil, err

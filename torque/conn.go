@@ -1,53 +1,25 @@
 package torque
 
-import (
-	"bufio"
-	"net"
+// Conn is a connection to a PBS server.
+type Conn interface {
+	// User returns the name of the authorized user for the connection.
+	User() string
 
-	"github.com/snsinfu/torque-qtop/dis"
-)
+	// ReadInt reads an integer from the connection.
+	ReadInt() (int64, error)
 
-// A Conn represents a connection to a PBS server.
-type Conn struct {
-	conn *net.TCPConn
-	r    *bufio.Reader
-	w    *bufio.Writer
-	user  string
-}
+	// ReadString reads a string from the connection.
+	ReadString() (string, error)
 
-// User returns the name of the authorized user for the connection.
-func (c *Conn) User() string {
-	return c.user
-}
+	// WriteInt writes an integer to the connection.
+	WriteInt(n int64) error
 
-// ReadInt reads an integer from the connection.
-func (c *Conn) ReadInt() (int64, error) {
-	return dis.ReadInt(c.r)
-}
+	// WriteString writes a string to the connection.
+	WriteString(s string) error
 
-// ReadString reads a string from the connection.
-func (c *Conn) ReadString() (string, error) {
-	return dis.ReadString(c.r)
-}
+	// Flush sends any buffered data to the server.
+	Flush() error
 
-// WriteInt writes an integer to the connection.
-func (c *Conn) WriteInt(n int64) error {
-	_, err := c.w.WriteString(dis.EncodeInt(n))
-	return err
-}
-
-// WriteString writes a string to the connection.
-func (c *Conn) WriteString(s string) error {
-	_, err := c.w.WriteString(dis.EncodeString(s))
-	return err
-}
-
-// Flush sends any buffered data to the server.
-func (c *Conn) Flush() error {
-	return c.w.Flush()
-}
-
-// Close closes the connection without flushing any buffered data.
-func (c *Conn) Close() error {
-	return c.conn.Close()
+	// Close closes the connection without flushing any buffered data.
+	Close() error
 }
