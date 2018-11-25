@@ -1,6 +1,7 @@
 package torque
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -91,7 +92,14 @@ func (d *Dialer) Dial(address string) (*Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{conn}, nil
+	me, err := user.Current()
+	c := &Conn{
+		conn: conn,
+		r:    bufio.NewReader(conn),
+		w:    bufio.NewWriter(conn),
+		user: me.Username,
+	}
+	return c, nil
 }
 
 // authorize grants authorization for given TCP connection to PBS server.
