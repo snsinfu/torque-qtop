@@ -160,7 +160,7 @@ type pbsConn struct {
 	conn *net.TCPConn
 	r    *bufio.Reader
 	w    *bufio.Writer
-	user  string
+	user string
 }
 
 func (c *pbsConn) User() string {
