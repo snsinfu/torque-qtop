@@ -88,13 +88,13 @@ func (d *Dialer) Dial(address string) (Conn, error) {
 		return nil, err
 	}
 
-	if err := authorize(conn, d.AuthAddr); err != nil {
-		conn.Close()
+	me, err := user.Current()
+	if err != nil {
 		return nil, err
 	}
 
-	me, err := user.Current()
-	if err != nil {
+	if err := authorize(conn, me.Username, d.AuthAddr); err != nil {
+		conn.Close()
 		return nil, err
 	}
 
@@ -108,19 +108,13 @@ func (d *Dialer) Dial(address string) (Conn, error) {
 }
 
 // authorize grants authorization for given TCP connection to PBS server.
-func authorize(conn *net.TCPConn, authAddr string) error {
+func authorize(conn *net.TCPConn, user string, authAddr string) error {
 	auth, err := net.Dial("unix", authAddr)
 	if err != nil {
 		return err
 	}
 	defer auth.Close()
 
-	me, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	username := me.Username
 	pid := os.Getpid()
 	port := conn.LocalAddr().(*net.TCPAddr).Port
 	server := conn.RemoteAddr().(*net.TCPAddr)
@@ -131,7 +125,7 @@ func authorize(conn *net.TCPConn, authAddr string) error {
 	enc.PutString(server.IP.String())
 	enc.PutInt(server.Port)
 	enc.PutInt(authTypeIFF)
-	enc.PutString(username)
+	enc.PutString(user)
 	enc.PutInt(pid)
 	enc.PutInt(port)
 
