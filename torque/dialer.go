@@ -94,6 +94,10 @@ func (d *Dialer) Dial(address string) (Conn, error) {
 	}
 
 	me, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+
 	c := &pbsConn{
 		conn: conn,
 		r:    bufio.NewReader(conn),
