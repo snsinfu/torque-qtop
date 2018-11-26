@@ -22,7 +22,7 @@ type Node struct {
 	SlotCount int
 }
 
-// QueryNodes return the state of the compute nodes in the cluster.
+// QueryNodes returns the state of the compute nodes in the cluster.
 func QueryNodes(c Conn) ([]Node, error) {
 	entities, err := queryEntity(c, pbsBatchStatusNode)
 	if err != nil {
@@ -64,7 +64,7 @@ type Slot struct {
 	Index int
 }
 
-// QueryJobs return the state of the batch jobs in the cluster.
+// QueryJobs returns the state of the batch jobs in the cluster.
 func QueryJobs(c Conn) ([]Job, error) {
 	entities, err := queryEntity(c, pbsBatchStatusJob)
 	if err != nil {
