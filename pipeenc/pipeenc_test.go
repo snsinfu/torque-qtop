@@ -49,7 +49,7 @@ func Test_Decoder_GetInt(t *testing.T) {
 	}
 }
 
-func Test_Decoder_GetInt_rejectsBadInput(t *testing.T) {
+func Test_Decoder_GetInt_RejectsBadInput(t *testing.T) {
 	badCases := []string{
 		"|",
 		"12a|",
