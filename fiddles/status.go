@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/snsinfu/torque-qtop/torque"
 )
@@ -30,10 +30,7 @@ func run() error {
 	}
 
 	for _, node := range nodes {
-		fmt.Printf("%s [%d]: %s\n", node.Name, node.NP, node.State)
-		attrs, _ := json.Marshal(node.Attrs)
-		fmt.Println(string(attrs))
-		fmt.Println()
+		fmt.Printf("%s [%d]: %s\n", node.Name, node.SlotCount, node.State)
 	}
 
 	fmt.Println()
@@ -45,9 +42,13 @@ func run() error {
 	}
 
 	for _, job := range jobs {
-		fmt.Printf("%s [%s]: %s %q\n", job.Name, job.State, job.Owner, job.Name)
-		attrs, _ := json.Marshal(job.Attrs)
-		fmt.Println(string(attrs))
+		shortID := job.ID[:strings.Index(job.ID, ".")]
+		shortOwner := job.Owner[:strings.Index(job.Owner, "@")]
+
+		fmt.Printf("%s [%s]: %s %q\n", shortID, job.State, shortOwner, job.Name)
+		fmt.Printf("  slots    = %d\n", len(job.ExecSlots))
+		fmt.Printf("  walltime = %d\n", job.Walltime)
+		fmt.Printf("  cputime  = %d\n", job.CPUTime)
 		fmt.Println()
 	}
 

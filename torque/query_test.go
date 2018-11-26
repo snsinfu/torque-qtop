@@ -56,16 +56,14 @@ func Test_QueryNodes_ParsesServerResponse(t *testing.T) {
 
 	expected := []Node{
 		{
-			Name:  "foo",
-			State: "free",
-			NP:    10,
-			Attrs: map[string]string{"state": "free", "np": "10"},
+			Name:      "foo",
+			State:     "free",
+			SlotCount: 10,
 		},
 		{
-			Name:  "bar",
-			State: "down",
-			NP:    20,
-			Attrs: map[string]string{"state": "down", "np": "20"},
+			Name:      "bar",
+			State:     "down",
+			SlotCount: 20,
 		},
 	}
 
@@ -87,10 +85,13 @@ func Test_QueryJobs_ParsesServerResponse(t *testing.T) {
 	conn := &mockConn{[]interface{}{
 		2, 2, 0, 0, 6, 2,
 
-		-1, "101", 3,
+		-1, "101", 6,
 		-1, "Job_Name", 0, "foo", 0,
 		-1, "Job_Owner", 0, "alice@example.com", 0,
 		-1, "job_state", 0, "R", 0,
+		-1, "exec_host", 0, "node01/1,5-6+node02/3", 0,
+		-1, "resources_used", 1, "walltime", "12:34:56", 0,
+		-1, "resources_used", 1, "cput", "7:08:09", 0,
 
 		-1, "102", 3,
 		-1, "Job_Name", 0, "bar", 0,
@@ -100,14 +101,17 @@ func Test_QueryJobs_ParsesServerResponse(t *testing.T) {
 
 	expected := []Job{
 		{
-			ID:    "101",
-			Name:  "foo",
-			Owner: "alice@example.com",
-			State: "R",
-			Attrs: map[string]string{
-				"Job_Name":  "foo",
-				"Job_Owner": "alice@example.com",
-				"job_state": "R",
+			ID:       "101",
+			Name:     "foo",
+			Owner:    "alice@example.com",
+			State:    "R",
+			Walltime: (12*60+34)*60 + 56,
+			CPUTime:  (7*60+8)*60 + 9,
+			ExecSlots: []Slot{
+				{"node01", 1},
+				{"node01", 5},
+				{"node01", 6},
+				{"node02", 3},
 			},
 		},
 		{
@@ -115,11 +119,6 @@ func Test_QueryJobs_ParsesServerResponse(t *testing.T) {
 			Name:  "bar",
 			Owner: "bob@example.com",
 			State: "Q",
-			Attrs: map[string]string{
-				"Job_Name":  "bar",
-				"Job_Owner": "bob@example.com",
-				"job_state": "Q",
-			},
 		},
 	}
 

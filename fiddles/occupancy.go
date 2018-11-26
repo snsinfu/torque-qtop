@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/snsinfu/torque-qtop/torque"
 )
@@ -38,7 +36,7 @@ func run() error {
 
 	for _, node := range nodes {
 		usage[node.Name] = procUsage{
-			max: node.NP,
+			max: node.SlotCount,
 		}
 		nodeNames = append(nodeNames, node.Name)
 	}
@@ -49,39 +47,10 @@ func run() error {
 	}
 
 	for _, job := range jobs {
-		execHost, ok := job.Attrs["exec_host"]
-		if !ok {
-			continue
-		}
-
-		// exec_host = host_cpu *( "+" host_cpu )
-		// host_cpu  = host "/" cpus
-		// cpus      = cpu_range *( "," cpu_range )
-		// cpu_range = cpu ?( "-" cpu )
-		// cpu       = int
-
-		for _, hostCPUs := range strings.Split(execHost, "+") {
-			hostAndCPUs := strings.Split(hostCPUs, "/")
-			host := hostAndCPUs[0]
-			cpus := hostAndCPUs[1]
-
-			hostUse := 0
-
-			for _, cpuRange := range strings.Split(cpus, ",") {
-				firstAndLast := strings.Split(cpuRange, "-")
-				switch len(firstAndLast) {
-				case 1:
-					hostUse++
-				case 2:
-					first, _ := strconv.Atoi(firstAndLast[0])
-					last, _ := strconv.Atoi(firstAndLast[1])
-					hostUse += last - first + 1
-				}
-			}
-
-			usage[host] = procUsage{
-				max:  usage[host].max,
-				used: usage[host].used + hostUse,
+		for _, slot := range job.ExecSlots {
+			usage[slot.Node] = procUsage{
+				max:  usage[slot.Node].max,
+				used: usage[slot.Node].used + 1,
 			}
 		}
 	}

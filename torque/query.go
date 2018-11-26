@@ -3,6 +3,7 @@ package torque
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // See torque: src/include/pbs_batchreqtype_db.h
@@ -16,10 +17,9 @@ const (
 
 // A Node contains information of a compute node.
 type Node struct {
-	Name  string
-	State string
-	NP    int
-	Attrs map[string]string
+	Name      string
+	State     string
+	SlotCount int
 }
 
 // QueryNodes return the state of the compute nodes in the cluster.
@@ -38,10 +38,9 @@ func QueryNodes(c Conn) ([]Node, error) {
 		}
 
 		nodes = append(nodes, Node{
-			Name:  ent.name,
-			State: ent.attrs["state"],
-			NP:    np,
-			Attrs: ent.attrs,
+			Name:      ent.name,
+			State:     ent.attrs["state"],
+			SlotCount: np,
 		})
 	}
 
@@ -50,11 +49,19 @@ func QueryNodes(c Conn) ([]Node, error) {
 
 // A Job contains information of a batch job.
 type Job struct {
-	ID    string
-	Name  string
-	Owner string
-	State string
-	Attrs map[string]string
+	ID        string
+	Name      string
+	Owner     string
+	State     string
+	ExecSlots []Slot
+	Walltime  int
+	CPUTime   int
+}
+
+// A Slot identifies a single execution slot in the job scheduler.
+type Slot struct {
+	Node  string
+	Index int
 }
 
 // QueryJobs return the state of the batch jobs in the cluster.
@@ -67,16 +74,110 @@ func QueryJobs(c Conn) ([]Job, error) {
 	jobs := []Job{}
 
 	for _, ent := range entities {
-		jobs = append(jobs, Job{
+		job := Job{
 			ID:    ent.name,
 			Name:  ent.attrs["Job_Name"],
 			Owner: ent.attrs["Job_Owner"],
 			State: ent.attrs["job_state"],
-			Attrs: ent.attrs,
-		})
+		}
+
+		if execHost, ok := ent.attrs["exec_host"]; ok {
+			job.ExecSlots, err = parseExecHost(execHost)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if walltime, ok := ent.attrs["resources_used.walltime"]; ok {
+			job.Walltime, err = parseClock(walltime)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if cputime, ok := ent.attrs["resources_used.cput"]; ok {
+			job.CPUTime, err = parseClock(cputime)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		jobs = append(jobs, job)
 	}
 
 	return jobs, err
+}
+
+// parseExecHost parses s as an exec_host attribute.
+//
+// exec_host  = host_slots *( "+" host_slots )
+// host_slots = host "/" slots
+// host       = string
+// slots      = slot_range *( "," slot_range )
+// slot_range = slot [ "-" slot ]
+// slot       = int
+//
+func parseExecHost(s string) ([]Slot, error) {
+	r := []Slot{}
+
+	for _, hostSlots := range strings.Split(s, "+") {
+		host, slots := splitOnce(hostSlots, "/")
+
+		for _, srs := range strings.Split(slots, ",") {
+			first, last := splitOnce(srs, "-")
+
+			if last == "" {
+				last = first
+			}
+
+			i, err := strconv.Atoi(first)
+			if err != nil {
+				return nil, err
+			}
+
+			j, err := strconv.Atoi(last)
+			if err != nil {
+				return nil, err
+			}
+
+			for ; i <= j; i++ {
+				r = append(r, Slot{Node: host, Index: i})
+			}
+		}
+	}
+
+	return r, nil
+}
+
+// parseClock parses a time string of the form [[hh:]mm:]ss and returns the time
+// represented by the string in seconds.
+func parseClock(s string) (int, error) {
+	clock := 0
+
+	for s != "" {
+		component, rest := splitOnce(s, ":")
+
+		n, err := strconv.Atoi(component)
+		if err != nil {
+			return 0, err
+		}
+
+		clock *= 60
+		clock += int(n)
+
+		s = rest
+	}
+
+	return clock, nil
+}
+
+// splitOnce splits s at the first occurrence of sep.
+func splitOnce(s, sep string) (string, string) {
+	n := strings.Index(s, sep)
+	if n == -1 {
+		return s, ""
+	}
+	return s[:n], s[n+len(sep):]
 }
 
 // An entity holds status of either a job, node or queue.
