@@ -56,7 +56,7 @@ func run() error {
 	}
 
 	fmt.Printf(
-		"%10s %16s %1s %4s %4s %6s %s\n",
+		"%-10s %-16s %1s %4s %4s %6s %s\n",
 		"USER",
 		"JOB",
 		"S",
@@ -70,7 +70,7 @@ func run() error {
 		shortOwner := summ.Owner[:strings.Index(summ.Owner, "@")]
 
 		fmt.Printf(
-			"%10s %16s %1s %4d %4d %6.1f %s\n",
+			"%-10s %-16s %1s %4d %4d %6.1f %s\n",
 			shortOwner,
 			summ.Name,
 			summ.State,
