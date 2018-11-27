@@ -56,11 +56,12 @@ func run() error {
 	}
 
 	fmt.Printf(
-		"%10s %16s %1s %4s %6s %s\n",
+		"%10s %16s %1s %4s %4s %6s %s\n",
 		"USER",
 		"JOB",
 		"S",
 		"NJOB",
+		"NCPU",
 		"CPU%",
 		"TIME",
 	)
@@ -69,11 +70,12 @@ func run() error {
 		shortOwner := summ.Owner[:strings.Index(summ.Owner, "@")]
 
 		fmt.Printf(
-			"%10s %16s %1s %4d %6.1f %s\n",
+			"%10s %16s %1s %4d %4d %6.1f %s\n",
 			shortOwner,
 			summ.Name,
 			summ.State,
 			summ.Count,
+			summ.Occupancy,
 			summ.CPUUsage*100,
 			fmt.Sprintf("%d", summ.MinWalltime),
 		)
@@ -94,6 +96,7 @@ type jobGroupSummary struct {
 	Owner         string
 	State         string
 	Count         int
+	Occupancy     int
 	HostOccupancy map[string]int
 	MinWalltime   int
 	MaxWalltime   int
@@ -186,9 +189,6 @@ func summarizeJobs(jobs []torque.Job) []jobGroupSummary {
 				Name:          key.Name,
 				Owner:         key.Owner,
 				HostOccupancy: map[string]int{},
-				MinWalltime:   0,
-				MaxWalltime:   0,
-				CPUUsage:      0,
 			}
 			summs[key] = summ
 		}
@@ -199,6 +199,7 @@ func summarizeJobs(jobs []torque.Job) []jobGroupSummary {
 			continue
 		}
 
+		summ.Occupancy += len(job.ExecSlots)
 		for _, slot := range job.ExecSlots {
 			summ.HostOccupancy[slot.Node]++
 		}
@@ -211,8 +212,10 @@ func summarizeJobs(jobs []torque.Job) []jobGroupSummary {
 			summ.MaxWalltime = job.Walltime
 		}
 
-		cpuUsage := float64(job.CPUTime) / float64(job.Walltime)
-		summ.CPUUsage += (cpuUsage - summ.CPUUsage) / float64(summ.Count)
+		if job.Walltime > 0 {
+			cpuUsage := float64(job.CPUTime) / float64(job.Walltime)
+			summ.CPUUsage += (cpuUsage - summ.CPUUsage) / float64(summ.Count)
+		}
 	}
 
 	r := []jobGroupSummary{}
