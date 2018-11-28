@@ -15,14 +15,8 @@ CUI job monitoring program for the torque resource manager.
 
 ## Install
 
-Download the latest 64-bit linux static binary from [release page][release-url]
-and just use it. Or build an executable:
-
-```console
-git clone https://github.com/snsinfu/torque-qtop
-cd torque-qtop
-go build -o ~/bin/qtop ./qtop/cmd
-```
+Download the static 64-bit linux build `qtop` from [release page][release-url].
+Put it into your `bin` directory and now you can use `qtop` command.
 
 ## Requirements
 
@@ -30,7 +24,15 @@ qtop itself is a statically linked pure go program and requires nothing. Works
 with TORQUE 6.1.2 servers. `trqauthd` must be listening on unix domain socket
 `/tmp/trqauthd-unix`.
 
-## Testing
+## Build
+
+```console
+git clone https://github.com/snsinfu/torque-qtop
+cd torque-qtop
+go build -o ~/bin/qtop ./qtop/cmd
+```
+
+## Test
 
 ```console
 go vet ./...
