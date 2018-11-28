@@ -11,7 +11,7 @@ CUI job monitoring program for the torque resource manager.
 [travis-badge]: https://travis-ci.org/snsinfu/torque-qtop.svg?branch=master
 [travis-url]: https://travis-ci.org/snsinfu/torque-qtop
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-url]: https://raw.githubusercontent.com/snsinfu/torque-qtop/master/LICENSE.txt
+[license-url]: https://github.com/snsinfu/torque-qtop/blob/master/LICENSE.txt
 
 ## Install
 
