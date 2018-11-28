@@ -1,0 +1,18 @@
+language: go
+go: "1.11"
+
+script: |
+  - go get ./...
+  - go vet ./...
+  - go test ./...
+  - mkdir out
+  - go build -o out/qtop ./qtop/cmd
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  skip_cleanup: true
+  file: out/qtop
+  on:
+    tags: true
+    condition: $TRAVIS_TAG =~ v[0-9].*
