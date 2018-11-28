@@ -7,7 +7,7 @@
 CUI job monitoring program for the torque resource manager.
 
 [release-badge]: https://img.shields.io/github/release/snsinfu/torque-qtop.svg
-[release-url]: https://github.com/snsinfu/reverse-tunnel/releases/latest
+[release-url]: https://github.com/snsinfu/torque-qtop/releases/latest
 [travis-badge]: https://travis-ci.org/snsinfu/torque-qtop.svg?branch=master
 [travis-url]: https://travis-ci.org/snsinfu/torque-qtop
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
