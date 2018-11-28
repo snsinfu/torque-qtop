@@ -1,8 +1,7 @@
 language: go
 go: "1.11"
 
-script: |
-  - go get ./...
+script:
   - go vet ./...
   - go test ./...
   - mkdir out
