@@ -165,7 +165,7 @@ func SummarizeNodes(nodes []torque.Node, jobs []torque.Job) []NodeSummary {
 		}
 
 		sort.Slice(ownersSum, func(i, j int) bool {
-			return ownersSum[i].Occupancy < ownersSum[j].Occupancy
+			return ownersSum[i].Occupancy > ownersSum[j].Occupancy
 		})
 
 		sums[index[host]].Owners = ownersSum
