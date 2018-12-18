@@ -138,6 +138,11 @@ func (app *App) drawNodes(y int, nodes []NodeSummary) int {
 		}
 	}
 
+	// Node name and meter
+
+	yStart := y
+	xRight := 0
+
 	for _, node := range nodes {
 		name := fmt.Sprintf("%*s", -nodeCols, node.Name)
 		util := fmt.Sprintf("[%2d/%2d]", node.UsedSlots, node.AvailSlots)
@@ -155,6 +160,33 @@ func (app *App) drawNodes(y int, nodes []NodeSummary) int {
 		x += 1
 		x += printStr(scr, x, y, meter, tcell.StyleDefault.Foreground(tcell.ColorGreen))
 		x += printStr(scr, x, y, meterFree, tcell.StyleDefault.Foreground(tcell.ColorGray))
+
+		if x > xRight {
+			xRight = x
+		}
+		y++
+	}
+
+	// Node owners
+
+	y = yStart
+	me, _ := user.Current()
+
+	for _, node := range nodes {
+		x := xRight + xMargin
+
+		for _, ownerSum := range node.Owners {
+			user := abbrevUsername(ownerSum.Owner)
+			info := fmt.Sprintf("%d:%s", ownerSum.Occupancy, user)
+
+			style := tcell.StyleDefault
+			if user != me.Username {
+				style = style.Foreground(tcell.ColorGray)
+			}
+
+			x += printStr(scr, x, y, info, style)
+			x += 1
+		}
 
 		y++
 	}
@@ -201,7 +233,7 @@ func (app *App) drawJobHeader(y int) int {
 }
 
 func (app *App) drawJob(y int, job JobSummary) int {
-	owner := job.Owner[:strings.Index(job.Owner, "@")]
+	owner := abbrevUsername(job.Owner)
 	maxTime := formatClock(job.MaxWalltime)
 
 	style := tcell.StyleDefault
@@ -259,4 +291,8 @@ func formatClock(n int) string {
 	hour := min / 60
 
 	return fmt.Sprintf("%3d:%02d:%02d", hour, min%60, sec%60)
+}
+
+func abbrevUsername(s string) string {
+	return s[:strings.Index(s, "@")]
 }

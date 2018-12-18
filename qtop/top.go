@@ -57,6 +57,12 @@ type NodeSummary struct {
 	Active     bool
 	AvailSlots int
 	UsedSlots  int
+	Owners     []NodeOwnerSummary
+}
+
+type NodeOwnerSummary struct {
+	Owner     string
+	Occupancy int
 }
 
 type JobSummary struct {
@@ -132,6 +138,37 @@ func SummarizeNodes(nodes []torque.Node, jobs []torque.Job) []NodeSummary {
 		for _, slot := range job.ExecSlots {
 			sums[index[slot.Node]].UsedSlots++
 		}
+	}
+
+	// FIXME: inefficient
+	jobSum := SummarizeJobs(jobs)
+
+	hostOwners := map[string]map[string]int{}
+	for _, node := range nodes {
+		hostOwners[node.Name] = map[string]int{}
+	}
+
+	for _, job := range jobSum {
+		for host, occ := range job.HostOccupancy {
+			hostOwners[host][job.Owner] += occ
+		}
+	}
+
+	for host, owners := range hostOwners {
+		ownersSum:= []NodeOwnerSummary{}
+
+		for name, occ := range owners {
+			ownersSum = append(ownersSum, NodeOwnerSummary{
+				Owner:     name,
+				Occupancy: occ,
+			})
+		}
+
+		sort.Slice(ownersSum, func(i, j int) bool {
+			return ownersSum[i].Occupancy < ownersSum[j].Occupancy
+		})
+
+		sums[index[host]].Owners = ownersSum
 	}
 
 	return sums
