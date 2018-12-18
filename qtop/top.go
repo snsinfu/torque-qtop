@@ -1,11 +1,14 @@
 package qtop
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/snsinfu/torque-qtop/torque"
 )
+
+var jobSuffixPattern = regexp.MustCompile(`-\d+$`)
 
 type Top struct {
 	conn torque.Conn
@@ -144,7 +147,7 @@ func SummarizeJobs(jobs []torque.Job) []JobSummary {
 
 	for _, job := range jobs {
 		key := groupKey{
-			Name:  job.Name,
+			Name:  basename(job.Name),
 			Owner: job.Owner,
 			State: job.State,
 		}
@@ -196,6 +199,10 @@ func SummarizeJobs(jobs []torque.Job) []JobSummary {
 	})
 
 	return sums
+}
+
+func basename(s string) string {
+	return jobSuffixPattern.ReplaceAllString(s, "")
 }
 
 func compareJobs(a, b JobSummary) int {
