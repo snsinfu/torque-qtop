@@ -223,6 +223,8 @@ func (app *App) drawJobHeader(y int) int {
 	x += printStr(scr, x, y, fmt.Sprintf("%6s", "CPU%"), style)
 	x += printStr(scr, x, y, " ", style)
 	x += printStr(scr, x, y, fmt.Sprintf("%9s", "MAX TIME"), style)
+	x += printStr(scr, x, y, " ", style)
+	x += printStr(scr, x, y, "JID", style)
 
 	w, _ := scr.Size()
 	if x < w {
@@ -239,10 +241,12 @@ func (app *App) drawJob(y int, job JobSummary) int {
 	style := tcell.StyleDefault
 	styleUser := style
 	styleState := style
+	styleJID := style.Foreground(tcell.ColorTeal)
 
 	me, _ := user.Current()
 	if owner != me.Username {
 		styleUser = styleUser.Foreground(tcell.ColorGray)
+		styleJID = styleJID.Foreground(tcell.ColorGray)
 	}
 
 	switch job.State {
@@ -269,11 +273,8 @@ func (app *App) drawJob(y int, job JobSummary) int {
 	x += printStr(scr, x, y, fmt.Sprintf("%6.1f", job.CPUUsage*100), style)
 	x += printStr(scr, x, y, " ", style)
 	x += printStr(scr, x, y, maxTime, style)
-
-	w, _ := scr.Size()
-	if x < w {
-		x += printStr(scr, x, y, strings.Repeat(" ", w-x), style)
-	}
+	x += printStr(scr, x, y, " ", style)
+	x += printStr(scr, x, y, compressIDs(job.IDs), styleJID)
 
 	return y + 1
 }
@@ -295,4 +296,49 @@ func formatClock(n int) string {
 
 func abbrevUsername(s string) string {
 	return s[:strings.Index(s, "@")]
+}
+
+func compressIDs(ids []string) string {
+	prefix := commonPrefix(ids)
+	if strings.HasSuffix(prefix, "[") {
+		return prefix + "]"
+	}
+
+	shortIDs := []string{}
+	for _, id := range ids {
+		shortIDs = append(shortIDs, abbrevID(id))
+	}
+	return strings.Join(shortIDs, " ")
+}
+
+func abbrevID(s string) string {
+	return s[:strings.Index(s, ".")]
+}
+
+func commonPrefix(arr []string) string {
+	if len(arr) == 0 {
+		return ""
+	}
+
+	prefix := arr[0]
+	for _, s := range arr[1:] {
+		prefix = prefix[:mismatch(prefix, s)]
+	}
+	return prefix
+}
+
+func mismatch(s1, s2 string) int {
+	var n int
+	if len(s1) < len(s2) {
+		n = len(s1)
+	} else {
+		n = len(s2)
+	}
+
+	for i := 0; i < n; i++ {
+		if s1[i] != s2[i] {
+			return i
+		}
+	}
+	return n
 }

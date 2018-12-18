@@ -75,6 +75,7 @@ type JobSummary struct {
 	MinWalltime   int
 	MaxWalltime   int
 	CPUUsage      float64
+	IDs           []string
 }
 
 func Summarize(nodes []torque.Node, jobs []torque.Job) Summary {
@@ -201,6 +202,7 @@ func SummarizeJobs(jobs []torque.Job) []JobSummary {
 		}
 
 		sum.Count++
+		sum.IDs = append(sum.IDs, job.ID)
 
 		if job.State != "R" {
 			continue
