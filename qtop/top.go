@@ -107,6 +107,7 @@ func SummarizeCluster(nodes []torque.Node, jobs []torque.Job) ClusterSummary {
 
 		default:
 			sum.WaitingJobs++
+			continue
 		}
 
 		sum.UsedSlots += len(job.ExecSlots)
@@ -132,7 +133,7 @@ func SummarizeNodes(nodes []torque.Node, jobs []torque.Job) []NodeSummary {
 	}
 
 	for _, job := range jobs {
-		if job.State == "C" {
+		if job.State != "R" {
 			continue
 		}
 
