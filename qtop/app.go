@@ -208,11 +208,14 @@ func (app *App) drawJobHeader(y int) int {
 	style := tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorGreen)
 
 	scr := app.scr
+	w, _ := scr.Size()
+	wjob := app.calcJobWidth(w)
+
 	x := 0
 	x += printStr(scr, x, y, "  ", style)
 	x += printStr(scr, x, y, fmt.Sprintf("%-10s", "USER"), style)
 	x += printStr(scr, x, y, " ", style)
-	x += printStr(scr, x, y, fmt.Sprintf("%-20s", "JOB"), style)
+	x += printStr(scr, x, y, "JOB"+strings.Repeat(" ", wjob-3), style)
 	x += printStr(scr, x, y, " ", style)
 	x += printStr(scr, x, y, "S", style)
 	x += printStr(scr, x, y, " ", style)
@@ -226,12 +229,19 @@ func (app *App) drawJobHeader(y int) int {
 	x += printStr(scr, x, y, " ", style)
 	x += printStr(scr, x, y, "JID", style)
 
-	w, _ := scr.Size()
 	if x < w {
 		x += printStr(scr, x, y, strings.Repeat(" ", w-x), style)
 	}
 
 	return y + 1
+}
+
+func (app *App) calcJobWidth(w int) int {
+	wjob := (w - 32) * 2 / 5
+	if wjob < 20 {
+		wjob = 20
+	}
+	return wjob
 }
 
 func (app *App) drawJob(y int, job JobSummary) int {
@@ -259,10 +269,14 @@ func (app *App) drawJob(y int, job JobSummary) int {
 	}
 
 	scr := app.scr
+	w, _ := scr.Size()
+	wjob := app.calcJobWidth(w)
+
 	x := xMargin
 	x += printStr(scr, x, y, fmt.Sprintf("%-10s", owner), styleUser)
 	x += printStr(scr, x, y, " ", style)
-	x += printStr(scr, x, y, fmt.Sprintf("%-20s", job.Name), style)
+	printStr(scr, x, y, job.Name, style)
+	x += wjob
 	x += printStr(scr, x, y, " ", style)
 	x += printStr(scr, x, y, job.State, styleState)
 	x += printStr(scr, x, y, " ", style)

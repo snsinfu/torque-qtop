@@ -157,7 +157,7 @@ func SummarizeNodes(nodes []torque.Node, jobs []torque.Job) []NodeSummary {
 	}
 
 	for host, owners := range hostOwners {
-		ownersSum:= []NodeOwnerSummary{}
+		ownersSum := []NodeOwnerSummary{}
 
 		for name, occ := range owners {
 			ownersSum = append(ownersSum, NodeOwnerSummary{
