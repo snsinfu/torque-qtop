@@ -8,3 +8,5 @@ require (
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	golang.org/x/text v0.3.0 // indirect
 )
+
+go 1.13
