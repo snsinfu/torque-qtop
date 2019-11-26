@@ -5,7 +5,7 @@ script:
   - go vet ./...
   - go test ./...
   - mkdir out
-  - go build -o out/qtop ./qtop/cmd
+  - env CGO_ENABLED=0 go build -o out/qtop ./qtop/cmd
 
 deploy:
   provider: releases
