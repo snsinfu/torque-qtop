@@ -148,13 +148,15 @@ func (app *App) drawNodes(y int, nodes []NodeSummary) int {
 		util := fmt.Sprintf("[%2d/%2d]", node.UsedSlots, node.AvailSlots)
 		meter := strings.Repeat("|", node.UsedSlots)
 		meterFree := strings.Repeat(".", node.AvailSlots-node.UsedSlots)
+		color := tcell.ColorTeal
 
 		if !node.Active {
 			util = "[--/--]"
+			color = tcell.ColorGray
 		}
 
 		x := xMargin
-		x += printStr(scr, x, y, name, tcell.StyleDefault.Foreground(tcell.ColorTeal))
+		x += printStr(scr, x, y, name, tcell.StyleDefault.Foreground(color))
 		x += 1
 		x += printStr(scr, x, y, util, tcell.StyleDefault.Foreground(tcell.ColorGray))
 		x += 1
